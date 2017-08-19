@@ -255,7 +255,7 @@ NOTSET = object()
 
 # Define the module's virtual name and alias
 __virtualname__ = 'docker_service'
-
+__virtual_aliases__ = ('dockerng', 'moby')
 
 def __virtual__():
     '''
@@ -5437,15 +5437,11 @@ def sls_build(name, base='opensuse/python', mods=None, saltenv='base',
 def _createContainerSpec(**kwargs):
   return docker.types.ContainerSpec(**kwargs)
 
-def _createPlacement(**kwargs):
-  return docker.types.Placement(**kwargs)
 
 def _createTaskTemplate(**kwargs):
   log.debug('Creating task template based on arguments'
             '%s', kwargs)
-  **kwargs['container_spec'] = _createContainerSpec(**kwargs.get('container_spec'))
-  if **kwargs.get('placement')
-    **kwargs['placement'] = _createPlacement(**kwargs.get('placement'))
+  kwargs['container_spec'] = _createContainerSpec(**(kwargs.get('container_spec')))
   return docker.types.TaskTemplate(**kwargs)
 
 def _createNetworkSpec(**kwargs):
