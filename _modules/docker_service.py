@@ -5444,17 +5444,21 @@ def _createTaskTemplate(**kwargs):
   log.debug('Creating task template based on arguments'
             '%s', kwargs)
   **kwargs['container_spec'] = _createContainerSpec(**kwargs.get('container_spec'))
-  **kwargs['placement'] = _createPlacement(**kwargs.get('placement'))
-  return docker.types.TaskTemplate(container_spec, **kwargs)
+  if **kwargs.get('placement')
+    **kwargs['placement'] = _createPlacement(**kwargs.get('placement'))
+  return docker.types.TaskTemplate(**kwargs)
 
+def _createNetworkSpec(**kwargs):
+  return docker.types.EndpointSpec(**kwargs)
 
-def create_service(**kwargs):
+def create_service(service_name, **kwargs):
   log.debug(
-        'docker.create_service: creating service %s, with image %s using the following '
-        'arguments: %s', image, service_name, kwargs
+        'docker.create_service: creating service %s, using the following '
+        'arguments: %s', service_name, kwargs
     )
-  **kwargs['task_template'] = _createTaskTemplate(**kwargs.get('task_template'))
+  kwargs['task_template'] = _createTaskTemplate(**(kwargs.get('task_template')))
+  kwargs['endpoint_spec'] = _createNetworkSpec(**(kwargs.get('endpoint_spec')))
   return _client_wrapper('create_service',
-      service = service_name,
+      name = service_name,
       **kwargs
     )
