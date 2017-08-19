@@ -5437,11 +5437,17 @@ def sls_build(name, base='opensuse/python', mods=None, saltenv='base',
 def _createContainerSpec(**kwargs):
   return docker.types.ContainerSpec(**kwargs)
 
+def _createPlacement(**kwargs):
+  return docker.types.Placement(**kwargs)
+
 
 def _createTaskTemplate(**kwargs):
   log.debug('Creating task template based on arguments'
             '%s', kwargs)
   kwargs['container_spec'] = _createContainerSpec(**(kwargs.get('container_spec')))
+  if placement in kwargs
+    **kwargs['placement'] = _createPlacement(**kwargs.get('placement'))
+
   return docker.types.TaskTemplate(**kwargs)
 
 def _createNetworkSpec(**kwargs):
