@@ -9,9 +9,9 @@ def _test_started(name):
   ret['result'] = None
   ret['comment'] = 'State docker_service.started will be executed with param "{0}"'.format(name)
   return ret
-def started(name,
-            **kwargs
-            ):
+
+
+def started(name, **kwargs):
   ret = {
     'name':name,
     'changes': {},
@@ -21,7 +21,6 @@ def started(name,
   }
   if __opts__['test']:
     return _test_started(name)
-  kwargs['image']= image
-  ret_exec= __salt__['docker2.create_service'](**kwargs)
+  ret_exec= __salt__['docker_service.create_service'](service_name=name, **kwargs)
   ret['result'] = ret_exec
   return ret
