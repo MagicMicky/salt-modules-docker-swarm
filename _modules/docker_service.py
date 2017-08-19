@@ -5445,8 +5445,8 @@ def _createTaskTemplate(**kwargs):
   log.debug('Creating task template based on arguments'
             '%s', kwargs)
   kwargs['container_spec'] = _createContainerSpec(**(kwargs.get('container_spec')))
-  if placement in kwargs
-    **kwargs['placement'] = _createPlacement(**kwargs.get('placement'))
+  if 'placement' in kwargs:
+    kwargs['placement'] = _createPlacement(**(kwargs.get('placement')))
 
   return docker.types.TaskTemplate(**kwargs)
 
