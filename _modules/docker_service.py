@@ -254,7 +254,7 @@ VERSION_RE = r'([\d.]+)'
 NOTSET = object()
 
 # Define the module's virtual name and alias
-__virtualname__ = 'docker2'
+__virtualname__ = 'docker_service'
 
 
 def __virtual__():
