@@ -5433,3 +5433,28 @@ def sls_build(name, base='opensuse/python', mods=None, saltenv='base',
         rm_(id_)
     return ret
 
+
+def _createContainerSpec(**kwargs):
+  return docker.types.ContainerSpec(**kwargs)
+
+def _createPlacement(**kwargs):
+  return docker.types.Placement(**kwargs)
+
+def _createTaskTemplate(**kwargs):
+  log.debug('Creating task template based on arguments'
+            '%s', kwargs)
+  **kwargs['container_spec'] = _createContainerSpec(**kwargs.get('container_spec'))
+  **kwargs['placement'] = _createPlacement(**kwargs.get('placement'))
+  return docker.types.TaskTemplate(container_spec, **kwargs)
+
+
+def create_service(**kwargs):
+  log.debug(
+        'docker.create_service: creating service %s, with image %s using the following '
+        'arguments: %s', image, service_name, kwargs
+    )
+  **kwargs['task_template'] = _createTaskTemplate(**kwargs.get('task_template'))
+  return _client_wrapper('create_service',
+      service = service_name,
+      **kwargs
+    )
