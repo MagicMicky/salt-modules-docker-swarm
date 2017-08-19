@@ -1,0 +1,3 @@
+# Salt modules for docker swarm
+This is based on the original docker module from Salt. I simply start to add
+swarm functionnality into it. First of all services...
