@@ -5434,33 +5434,93 @@ def sls_build(name, base='opensuse/python', mods=None, saltenv='base',
     return ret
 
 
-def _createContainerSpec(**kwargs):
-  return docker.types.ContainerSpec(**kwargs)
+def _get_task_template_args(**kwargs):
+  #should copy kwargs into smtg else
+  if 'container_spec' in kwargs:
+    kwargs['container_spec'] = _create_container_spec(**(kwargs.get('container_spec')))
+  if 'log_driver' in kwargs:
+    kwargs['log_driver'] = _create_driver_config(**(kwargs.get('log_driver')))
+  if 'resources' in kwargs:
+    kwargs['resources'] = _create_resources(**(kwargs.get('resources')))
+  if 'restart_policy' in kwargs:
+    kwargs['restart_policy'] = _create_restart_policy(**(kwargs.get('resources')))
+  if 'placement' in kwargs:
+    kwargs['placement'] = _create_placement(**(kwargs.get('placement')))
 
-def _createPlacement(**kwargs):
+  return kwargs
+
+def _create_container_spec(**kwargs):  
+  return docker.types.ContainerSpec(**kwargs)
+def _create_driver_config(**kwargs):
+  return docker.types.DriverConfig(**kwargs)
+def _create_resources(**kwargs):
+  return docker.types.Resources(**kwargs)
+def _create_restart_policy(**kwargs):
+  return docker.types.RestartPolicy(**kwargs)
+def _create_placement(**kwargs):
   return docker.types.Placement(**kwargs)
 
-
-def _createTaskTemplate(**kwargs):
+def _create_task_template(**kwargs):
   log.debug('Creating task template based on arguments'
             '%s', kwargs)
-  kwargs['container_spec'] = _createContainerSpec(**(kwargs.get('container_spec')))
-  if 'placement' in kwargs:
-    kwargs['placement'] = _createPlacement(**(kwargs.get('placement')))
-
-  return docker.types.TaskTemplate(**kwargs)
-
-def _createNetworkSpec(**kwargs):
+  args = _get_task_template_args(**kwargs)
+  return docker.types.TaskTemplate(args)
+def _create_service_mode(**kwargs):
+  return docker.types.ServiceMode(**kwargs)
+def _create_update_config(**kwargs):
+  return docker.types.UpdateConfig(**kwargs)
+def _create_endpoint_spec(**kwargs):
   return docker.types.EndpointSpec(**kwargs)
 
-def create_service(service_name, **kwargs):
-  log.debug(
-        'docker.create_service: creating service %s, using the following '
-        'arguments: %s', service_name, kwargs
+def _get_service_kwargs(**kwargs):
+  #should copy kwargs into smtg else
+  if 'task_template' in kwargs:
+    kwargs['task_template'] = _create_task_template(**(kwargs.get('task_template')))
+  if 'service_mode' in kwargs
+    kwargs['service_mode'] = _create_service_mode(**(kwargs.get('service_mode')))
+  if 'update_config' in kwargs
+    kwargs['update_config'] = _create_update_config(**(kwargs.get('update_config')))
+  if 'endpoint_spec' in kwargs
+    kwargs['endpoint_spec'] = _create_endpoint_spec(**(kwargs.get('endpoint_spec')))
+
+  return kwargs
+
+def inspect_service(service):
+  log.debug('Inspecting service %s', service)
+  ret = _client_wrapper('inspect_service', service)
+  return ret
+
+def inspect_task(task):
+  log.debug('Inspecting task %s', task)
+  ret = _client_wrapper('inspect_task', task)
+  return ret
+
+
+def update_service(name, **kwargs):
+  log.debug('Updating service %s with values:',
+            '%s', name, **kwargs)
+  args = _get_service_kwargs(**kwargs)
+  return _client_wrapper('update_service',
+      name,
+      args
     )
-  kwargs['task_template'] = _createTaskTemplate(**(kwargs.get('task_template')))
-  kwargs['endpoint_spec'] = _createNetworkSpec(**(kwargs.get('endpoint_spec')))
-  return _client_wrapper('create_service',
-      name = service_name,
-      **kwargs
+
+def create_service(name, **kwargs):
+  log.debug('docker.create_service: creating service %s, using the following '
+            'arguments: %s', name, kwargs)
+  service_exists = inspect_service(name)
+  time_started = time.time()
+  if service_exists:
+    response = update_service(name, **kwargs)
+  else:
+    args = _get_service_kwargs(**kwargs)
+    response =  _client_wrapper('create_service',
+        name,
+        **kwargs
     )
+  response['Time_Elapsed'] = time.time() - time_started
+  if name is None:
+      name = inspect_container(response['Id'])['Name'].lstrip('/')
+  response['Name'] = name
+  return response
+

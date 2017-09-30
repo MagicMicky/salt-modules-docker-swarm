@@ -7,20 +7,17 @@ def _test_started(name):
     'pchanges': {},
   }
   ret['result'] = None
-  ret['comment'] = 'State docker_service.started will be executed with param "{0}"'.format(name)
+  inspect_service = __salt__['docker_service.inspect_service'](name)
+  if inspect_service:
+    ret['comment'] = 'The service "{0}" will be updated'.format(name)
+  else 
+    ret['comment'] = 'A new service "{0}" will be created'.format(name)
   return ret
-
 
 def started(name, **kwargs):
-  ret = {
-    'name':name,
-    'changes': {},
-    'result': False,
-    'comment': '',
-    'pchanges': {},
-  }
+
   if __opts__['test']:
     return _test_started(name)
-  ret_exec= __salt__['docker_service.create_service'](service_name=name, **kwargs)
-  ret['result'] = ret_exec
-  return ret
+  ret = __salt__['docker_service.create_service'](name, **kwargs)
+  return ret;
+
