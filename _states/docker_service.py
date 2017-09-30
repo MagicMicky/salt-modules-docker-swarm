@@ -15,7 +15,14 @@ def _test_started(name):
   return ret
 
 def started(name, **kwargs):
+  ret = {
+    'name': name,
+    'changes': {},
+    'result': False,
+    'comment': '',
+    'pchanges': {},
+  }
   if __opts__['test']:
     return _test_started(name)
-  ret = __salt__['docker_service.create_service'](name, **kwargs)
+  ret['result'] = __salt__['docker_service.create_service'](name, **kwargs)
   return ret;
