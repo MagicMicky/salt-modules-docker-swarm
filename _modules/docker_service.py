@@ -5517,6 +5517,7 @@ def create_service(name, **kwargs):
   log.debug('service %s', service_exists)
   time_started = time.time()
   response = {
+    'result': True
     'comment': '',
     'changes': {}
   }
@@ -5528,13 +5529,15 @@ def create_service(name, **kwargs):
     )
   else:
     args = _get_service_kwargs(name, **kwargs)
-    response =  _client_wrapper('create_service',
+    new =  _client_wrapper('create_service',
         **args
     )
-  log.debug('omg %s', response)
+    response['changes'] = {'old': {}, 'new': new}
   response['time_Elapsed'] = time.time() - time_started
   if name is None:
       name = inspect_container(response['Id'])['Name'].lstrip('/')
   response['name'] = name
+  log.debug('response: %s', response)
+
   return response
 
