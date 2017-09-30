@@ -5432,22 +5432,24 @@ def sls_build(name, base='opensuse/python', mods=None, saltenv='base',
         stop(id_)
         rm_(id_)
     return ret
+  
 
 
 def _get_task_template_args(**kwargs):
   #should copy kwargs into smtg else
+  nextargs={}
   if 'container_spec' in kwargs:
-    kwargs['container_spec'] = _create_container_spec(**(kwargs.get('container_spec')))
+    nextargs['container_spec'] = _create_container_spec(**(kwargs.get('container_spec')))
   if 'log_driver' in kwargs:
-    kwargs['log_driver'] = _create_driver_config(**(kwargs.get('log_driver')))
+    nextargs['log_driver'] = _create_driver_config(**(kwargs.get('log_driver')))
   if 'resources' in kwargs:
-    kwargs['resources'] = _create_resources(**(kwargs.get('resources')))
+    nextargs['resources'] = _create_resources(**(kwargs.get('resources')))
   if 'restart_policy' in kwargs:
-    kwargs['restart_policy'] = _create_restart_policy(**(kwargs.get('resources')))
+    nextargs['restart_policy'] = _create_restart_policy(**(kwargs.get('resources')))
   if 'placement' in kwargs:
-    kwargs['placement'] = _create_placement(**(kwargs.get('placement')))
+    nextargs['placement'] = _create_placement(**(kwargs.get('placement')))
 
-  return kwargs
+  return nextargs
 
 def _create_container_spec(**kwargs):  
   return docker.types.ContainerSpec(**kwargs)
@@ -5464,7 +5466,7 @@ def _create_task_template(**kwargs):
   log.debug('Creating task template based on arguments'
             '%s', kwargs)
   args = _get_task_template_args(**kwargs)
-  return docker.types.TaskTemplate(args)
+  return docker.types.TaskTemplate(**args)
 def _create_service_mode(**kwargs):
   return docker.types.ServiceMode(**kwargs)
 def _create_update_config(**kwargs):
@@ -5472,18 +5474,21 @@ def _create_update_config(**kwargs):
 def _create_endpoint_spec(**kwargs):
   return docker.types.EndpointSpec(**kwargs)
 
-def _get_service_kwargs(**kwargs):
+def _get_service_kwargs(name, **kwargs):
   #should copy kwargs into smtg else
+  nextargs = {
+    'name': name
+  }
   if 'task_template' in kwargs:
-    kwargs['task_template'] = _create_task_template(**(kwargs.get('task_template')))
-  if 'service_mode' in kwargs
-    kwargs['service_mode'] = _create_service_mode(**(kwargs.get('service_mode')))
-  if 'update_config' in kwargs
-    kwargs['update_config'] = _create_update_config(**(kwargs.get('update_config')))
-  if 'endpoint_spec' in kwargs
-    kwargs['endpoint_spec'] = _create_endpoint_spec(**(kwargs.get('endpoint_spec')))
+    nextargs['task_template'] = _create_task_template(**(kwargs.get('task_template')))
+  if 'service_mode' in kwargs:
+    nextargs['service_mode'] = _create_service_mode(**(kwargs.get('service_mode')))
+  if 'update_config' in kwargs:
+    nextargs['update_config'] = _create_update_config(**(kwargs.get('update_config')))
+  if 'endpoint_spec' in kwargs:
+    nextargs['endpoint_spec'] = _create_endpoint_spec(**(kwargs.get('endpoint_spec')))
 
-  return kwargs
+  return nextargs
 
 def inspect_service(service):
   log.debug('Inspecting service %s', service)
@@ -5495,28 +5500,30 @@ def inspect_task(task):
   ret = _client_wrapper('inspect_task', task)
   return ret
 
+def search_service(service):
+  log.debug('Service lookup for %s', service)
+  ret = _client_wrapper('services', {'name': service})
+  return ret
 
 def update_service(name, **kwargs):
   log.debug('Updating service %s with values:',
             '%s', name, **kwargs)
   args = _get_service_kwargs(**kwargs)
   return _client_wrapper('update_service',
-      name,
-      args
+      **args
     )
 
 def create_service(name, **kwargs):
   log.debug('docker.create_service: creating service %s, using the following '
             'arguments: %s', name, kwargs)
-  service_exists = inspect_service(name)
+  service_exists = search_service(name)
   time_started = time.time()
   if service_exists:
     response = update_service(name, **kwargs)
   else:
-    args = _get_service_kwargs(**kwargs)
+    args = _get_service_kwargs(name, **kwargs)
     response =  _client_wrapper('create_service',
-        name,
-        **kwargs
+        **args
     )
   response['Time_Elapsed'] = time.time() - time_started
   if name is None:

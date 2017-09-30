@@ -10,14 +10,12 @@ def _test_started(name):
   inspect_service = __salt__['docker_service.inspect_service'](name)
   if inspect_service:
     ret['comment'] = 'The service "{0}" will be updated'.format(name)
-  else 
+  else:
     ret['comment'] = 'A new service "{0}" will be created'.format(name)
   return ret
 
 def started(name, **kwargs):
-
   if __opts__['test']:
     return _test_started(name)
   ret = __salt__['docker_service.create_service'](name, **kwargs)
   return ret;
-
