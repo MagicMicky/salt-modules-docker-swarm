@@ -5517,7 +5517,7 @@ def create_service(name, **kwargs):
   log.debug('service %s', service_exists)
   time_started = time.time()
   response = {
-    'result': True
+    'result': True,
     'comment': '',
     'changes': {}
   }
