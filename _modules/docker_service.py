@@ -5451,7 +5451,7 @@ def _get_task_template_args(**kwargs):
 
   return nextargs
 
-def _create_container_spec(**kwargs):  
+def _create_container_spec(**kwargs):
   return docker.types.ContainerSpec(**kwargs)
 def _create_driver_config(**kwargs):
   return docker.types.DriverConfig(**kwargs)
@@ -5516,10 +5516,14 @@ def create_service(name, **kwargs):
   service_exists = search_service(name)
   log.debug('service %s', service_exists)
   time_started = time.time()
+  response = {
+    'comment': '',
+    'changes': {}
+  }
   if service_exists:
     args = _get_service_kwargs(name, **kwargs)
     add_update_args(service_exists, args)
-    response =  _client_wrapper('update_service',
+    response['result'] =  _client_wrapper('update_service',
         **args
     )
   else:
@@ -5527,9 +5531,10 @@ def create_service(name, **kwargs):
     response =  _client_wrapper('create_service',
         **args
     )
-  response['Time_Elapsed'] = time.time() - time_started
+  log.debug('omg %s', response)
+  response['time_Elapsed'] = time.time() - time_started
   if name is None:
       name = inspect_container(response['Id'])['Name'].lstrip('/')
-  response['Name'] = name
+  response['name'] = name
   return response
 
