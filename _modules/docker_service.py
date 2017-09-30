@@ -5505,21 +5505,23 @@ def search_service(service):
   ret = _client_wrapper('services', {'name': service})
   return ret
 
-def update_service(name, **kwargs):
-  log.debug('Updating service %s with values:',
-            '%s', name, **kwargs)
-  args = _get_service_kwargs(**kwargs)
-  return _client_wrapper('update_service',
-      **args
-    )
+def add_update_args(old, new):
+  new['service'] = old[0]['ID']
+  new['version'] = old[0]['Version']['Index']
+  return new
 
 def create_service(name, **kwargs):
   log.debug('docker.create_service: creating service %s, using the following '
             'arguments: %s', name, kwargs)
   service_exists = search_service(name)
+  log.debug('service %s', service_exists)
   time_started = time.time()
   if service_exists:
-    response = update_service(name, **kwargs)
+    args = _get_service_kwargs(name, **kwargs)
+    add_update_args(service_exists, args)
+    response =  _client_wrapper('update_service',
+        **args
+    )
   else:
     args = _get_service_kwargs(name, **kwargs)
     response =  _client_wrapper('create_service',
